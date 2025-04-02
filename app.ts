@@ -2,52 +2,21 @@ import { Request, Response } from "express";
 
 // Importação da biblioteca express
 import express from "express";
-
-
-
+import { IProductsListFilters } from "./IProducts";
+import productRoutes from "./src/routes/product.routes";
 
 
 //Importação da biblioteca Express
 
 
 //Criação da aplicação 
-const app = express()
+const app = express();
 
 //Configura a aplicação para receber json no body das requisições
 app.use(express.json()); 
+app.use("/product", productRoutes)
 
-//implementar o método get (path), aron function
-//req = todos os parametros da requisição
-//res = responder a resquisição
-//send = envia uma resposta para quem chamou API
-
-//define método get que responde no Path /, responde a requisição com Hello Word
-
-let products = [
-    {
-        id: 1,
-        name: "Feijão",
-        brand: "Broto Legal",
-        barCode:"021930878509328740924",
-        supplier: "Rede de Distribuição Ltda",
-        stockId: 98,
-        price: 8.79,
-        weight: 1,
-        measureUnit: "Kg",
-    },
-    {
-        id: 2,
-        name: "Arroz",
-        brand:"Tio João",
-        barCode:"2938209302081984053754",
-        supplier:"Rede de Distribuição Ltda",
-        stockId: 65,
-        price: 29.99,
-        weight: 5,
-        measureUnit: "Kg"
-    }
-]
-
+app.use("/", productRoutes);
 // Lista de Clientes const clients = [
 let clientes = [
     { 
@@ -163,57 +132,7 @@ let funcionarios = [
 ]
 
 
-//define método que mostra produto por Id get que responde no Path /product/id
-app.get("/product/:id", (req: Request, res: Response) => {
-    console.log(req.params.id);
 
-    const product = products.find((product) => {
-        return product.id === Number(req.params.id)
-    })
-
-if(!product){
-    res.status(404).send();
-    return;
-}
-
-//Responde a requisição com o produto encontrado
-    res.status(200).json(product);
-});
-
-
-//define método Listar todos os produtos get que responde no Path /product
-app.get("/product", (req: Request, res: Response) => {
-    res.status(200).json(products)
-})
-
-// define método para cadastrar um novo produto post que responde no Path /product
-app.post("/product",(req: Request, res: Response) => {
-    const product = req.body;
-    products.push(product);
-    res.status(201).send();
-})
-
-// define o metodo para atualizar o produto 
-app.put("/product/:id", (req: Request, res: Response) => {
-    const product = products.find((p) => p.id === Number(req.params.id));
-    if (!product) return res.status(404).send();
-
-    Object.assign(product, req.body);
-    res.status(200).json(product);
-});
-
-// define o metodo para excluir um produto 
-
-app.delete("/product/:id", (req: Request, res: Response) => {
-    const id = Number(req.params.id);
-    const productExists = products.some((p) => p.id === id);
-
-    if (productExists) {
-        return res.status(400).json({ message: "Não é permitido excluir um produto existente." });
-    }
-
-    return res.status(404).json({ message: "Produto não encontrado." });
-});
 
 // define o metodo para listar todos os clientes
 app.get("/client", (req: Request, res: Response) => {
@@ -224,10 +143,10 @@ app.get("/client", (req: Request, res: Response) => {
 app.get("/client/:id", (req: Request, res: Response) => {
     console.log(req.params.id);
 
-    const product = products.find((product) => {
-        return product.id === Number(req.params.id)
+    const client = clientes.find((clientes) => {
+        return clientes.id === Number(req.params.id)
     })
-})
+})  
 
 // define método para cadastrar um novo cliente post que responde no Path /client
 app.post("/client",(req: Request, res: Response) => {
@@ -239,8 +158,10 @@ app.post("/client",(req: Request, res: Response) => {
 // define o metodo para atualizar o cliente 
     app.put("/client/:id", (req: Request, res: Response) => {
     const client = clientes.find((c) => c.id === Number(req.params.id));
-    if (!client) return res.status(404).send();
-
+    if (!client) {
+         res.status(404).send();
+         return
+    }
     Object.assign(client, req.body);
     res.status(200).json(client);
 });
@@ -249,13 +170,14 @@ app.post("/client",(req: Request, res: Response) => {
 
 app.delete("/client/:id", (req: Request, res: Response) => {
     const id = Number(req.params.id);
-    const clientExists = products.some((c) => c.id === id);
+    const clientExists = clientes.some((c) => c.id === id);
 
     if (clientExists) {
-        return res.status(400).json({ message: "Não é permitido excluir um produto existente." });
+        res.status(400).json({ message: "Não é permitido excluir um produto existente." });
+        return 
     }
 
-    return res.status(404).json({ message: "Produto não encontrado." });
+    res.status(404).json({ message: "Produto não encontrado." });
 });
 
 
@@ -283,7 +205,10 @@ app.post("/employee",(req: Request, res: Response) => {
 // define o metodo para atualizar o funcionario 
     app.put("/employee/:id", (req: Request, res: Response) => {
     const employee = funcionarios.find((f) => f.id === Number(req.params.id));
-    if (!employee) return res.status(404).send();
+    if (!employee){
+        res.status(404).send();
+        return 
+    } 
 
     Object.assign(employee, req.body);
     res.status(200).json(employee);
@@ -293,49 +218,18 @@ app.post("/employee",(req: Request, res: Response) => {
 
 app.delete("/employee/:id", (req: Request, res: Response) => {
     const id = Number(req.params.id);
-    const employeeExists = products.some((p) => p.id === id);
+    const employeeExists = funcionarios.some((f) => f.id === id);
 
     if (employeeExists) {
-        return res.status(400).json({ message: "Não é permitido excluir um produto existente." });
+         res.status(400).json({ message: "Não é permitido excluir um produto existente." });
+         return
     }
 
-    return res.status(404).json({ message: "Produto não encontrado." });
+    res.status(404).json({ message: "Produto não encontrado." });
 });
 
 
-//implemenntando Filtros para produtos
-
-app.get("/product", (req: Request, res: Response) => {
-    const { name, brand, supplier, stockId } = req.query;
-
-    let filteredProducts = products;
-
-    // Função auxiliar para filtrar ignorando case-sensitive e buscando por parte da palavra
-    const filterByText = (field: string, value?: string) => {
-        if (!value) return true;
-        return field.toLowerCase().includes(value.toLowerCase());
-    };
-
-    if (name) {
-        filteredProducts = filteredProducts.filter(p => filterByText(p.name, name as string));
-    }
-
-    if (brand) {
-        filteredProducts = filteredProducts.filter(p => filterByText(p.brand, brand as string));
-    }
-
-    if (supplier) {
-        filteredProducts = filteredProducts.filter(p => filterByText(p.supplier, supplier as string));
-    }
-
-    if (stockId) {
-        filteredProducts = filteredProducts.filter(p => p.stockId === Number(stockId));
-    }
-
-    res.status(200).json(filteredProducts);
-});
-
-//implemenntando Filtros para clientes
+//implementando Filtros para clientes
 
 app.get("/client", (req: Request, res: Response) => {
     const { name, document, email } = req.query;
